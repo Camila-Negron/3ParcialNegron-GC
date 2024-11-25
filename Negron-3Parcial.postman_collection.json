@@ -1,0 +1,359 @@
+{
+	"info": {
+		"_postman_id": "4e148af4-b14e-403f-9a90-d08b67aa6ec9",
+		"name": "Negron-3Parcial",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "31370963",
+		"_collection_link": "https://web-sistemas.postman.co/workspace/Team-Workspace~615458f4-6750-4d5f-8d7d-77f75636c6bf/collection/31370963-4e148af4-b14e-403f-9a90-d08b67aa6ec9?action=share&source=collection_link&creator=31370963"
+	},
+	"item": [
+		{
+			"name": "Get All Projects",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Prueba 1: Verificar que el código de respuesta es 200\r",
+							"pm.test(\"El código de respuesta es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Prueba 2: Verificar que la respuesta está en formato JSON\r",
+							"pm.test(\"La respuesta está en formato JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"// Prueba 3: Verificar que contiene una lista de proyectos\r",
+							"pm.test(\"El cuerpo contiene una lista de proyectos\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"array\");\r",
+							"    pm.expect(jsonData.length).to.be.greaterThan(0); // La lista no está vacía\r",
+							"});\r",
+							"\r",
+							"// Prueba 4: Verificar que cada proyecto tiene campos requeridos\r",
+							"pm.test(\"Cada proyecto contiene campos requeridos\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    jsonData.forEach(project => {\r",
+							"        pm.expect(project).to.have.property(\"Id\");\r",
+							"        pm.expect(project).to.have.property(\"Content\");\r",
+							"        pm.expect(project).to.have.property(\"ItemsCount\");\r",
+							"        pm.expect(project).to.have.property(\"Children\");\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// Prueba 5: Verificar que el primer proyecto tiene subproyectos\r",
+							"pm.test(\"El primer proyecto tiene subproyectos\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    const firstProject = jsonData[0]; // Primer proyecto\r",
+							"    pm.expect(firstProject).to.have.property(\"Children\");\r",
+							"    pm.expect(firstProject.Children).to.be.an(\"array\");\r",
+							"    if (firstProject.Children.length > 0) {\r",
+							"        pm.expect(firstProject.Children[0]).to.have.property(\"Id\");\r",
+							"        pm.expect(firstProject.Children[0]).to.have.property(\"Content\");\r",
+							"    }\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://todo.ly/api/projects.json",
+					"protocol": "https",
+					"host": [
+						"todo",
+						"ly"
+					],
+					"path": [
+						"api",
+						"projects.json"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "CreateProject",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Estado HTTP es 200 - Creación exitosa\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"El contenido del cuerpo tiene el nodo ProjectObject\", function () {\r",
+							"    const responseXML = pm.response.text();\r",
+							"    pm.expect(responseXML).to.include(\"<ProjectObject>\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Estado HTTP es 200 - Proyecto duplicado permitido\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Un proyecto duplicado se crea sin errores\", function () {\r",
+							"    const responseXML = pm.response.text();\r",
+							"    pm.expect(responseXML).to.include(\"<ProjectObject>\");\r",
+							"});\r",
+							"\r",
+							"const xml2js = require('xml2js');\r",
+							"const parser = new xml2js.Parser();\r",
+							"\r",
+							"pm.test(\"Validar contenido del proyecto creado\", function () {\r",
+							"    const responseXML = pm.response.text();\r",
+							"    parser.parseString(responseXML, function (err, result) {\r",
+							"        pm.expect(result.ProjectObject.Content[0]).to.eql(\"My New Project\");\r",
+							"        pm.expect(result.ProjectObject.Icon[0]).to.eql(\"4\");\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<ProjectObject>\r\n  <Content>My New Project</Content>\r\n  <Icon>4</Icon>\r\n</ProjectObject>",
+					"options": {
+						"raw": {
+							"language": "xml"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://todo.ly/api/projects.xml",
+					"protocol": "https",
+					"host": [
+						"todo",
+						"ly"
+					],
+					"path": [
+						"api",
+						"projects.xml"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get Token",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1. Validar que el estado de la respuesta es 200\r",
+							"pm.test(\"El estado de la respuesta es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// 2. Validar que el contenido es JSON\r",
+							"pm.test(\"El contenido es JSON\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"// 3. Verificar la estructura del cuerpo de la respuesta\r",
+							"pm.test(\"La respuesta contiene el token esperado\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"TokenString\");\r",
+							"    pm.expect(jsonData).to.have.property(\"UserEmail\");\r",
+							"});\r",
+							"\r",
+							"// 4. Validar que el token no está vacío\r",
+							"pm.test(\"El token no está vacío\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.TokenString).to.not.be.empty;\r",
+							"});\r",
+							"\r",
+							"// 5. Verificar el tiempo de respuesta\r",
+							"pm.test(\"Tiempo de respuesta menor a 1 segundo\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"});\r",
+							"\r",
+							"// Guardar el token en una variable de entorno para futuras solicitudes\r",
+							"const jsonData = pm.response.json();\r",
+							"pm.environment.set(\"authToken\", jsonData.TokenString);\r",
+							"console.log(\"Token guardado:\", jsonData.TokenString);\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "123456",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "camila12@gmail.com",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://todo.ly/api/authentication/token.json",
+					"protocol": "https",
+					"host": [
+						"todo",
+						"ly"
+					],
+					"path": [
+						"api",
+						"authentication",
+						"token.json"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Deletetoken\\",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1. Validar que el estado de la respuesta es 200\r",
+							"pm.test(\"El estado de la respuesta es 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// 2. Verificar que el contenido de la respuesta es JSON\r",
+							"pm.test(\"El contenido es JSON\", function () {\r",
+							"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+							"});\r",
+							"\r",
+							"// 3. Validar que el cuerpo de la respuesta incluye los campos esperados\r",
+							"pm.test(\"La respuesta contiene los campos esperados\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"TokenString\");\r",
+							"    pm.expect(jsonData).to.have.property(\"UserEmail\");\r",
+							"    pm.expect(jsonData).to.have.property(\"ExpirationTime\");\r",
+							"});\r",
+							"\r",
+							"// 4. Asegurarse de que el token ya no es válido\r",
+							"pm.test(\"El token ya no es válido\", function () {\r",
+							"    const token = pm.environment.get(\"token\");\r",
+							"    if (token) {\r",
+							"        console.log(\"Token eliminado:\", token);\r",
+							"        pm.environment.unset(\"token\");\r",
+							"    } else {\r",
+							"        pm.expect(token).to.be.undefined;\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// 5. Verificar el tiempo de respuesta\r",
+							"pm.test(\"Tiempo de respuesta menor a 1 segundo\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Token",
+						"value": "{{authToken}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://todo.ly/api/authentication/token.json",
+					"protocol": "https",
+					"host": [
+						"todo",
+						"ly"
+					],
+					"path": [
+						"api",
+						"authentication",
+						"token.json"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "123456",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "camila12@gmail.com",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
